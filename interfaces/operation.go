@@ -6,6 +6,7 @@ type Stack struct {
 }
 
 type Operation interface {
+	// ---  content  --------------------------------------------------------------
 	CreateStack(name string)
 	ListStacks() []Stack
 }
