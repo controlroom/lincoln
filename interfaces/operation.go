@@ -6,7 +6,11 @@ type Stack struct {
 }
 
 type Operation interface {
-	// ---  content  --------------------------------------------------------------
+	// ---  Stacks  --------------------------------------------------------------
 	CreateStack(name string)
 	ListStacks() []Stack
+	GetDefaultStack() *Stack
+	SetDefaultStack(name string) error
+	FindStacks(flags []map[string]string) []Stack
+	FindStack(flags []map[string]string) *Stack
 }

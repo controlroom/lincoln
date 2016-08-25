@@ -52,3 +52,68 @@ func (op DockerOperation) ListStacks() []interfaces.Stack {
 
 	return stacks
 }
+
+func (op DockerOperation) FindStacks(flags []map[string]string) []interfaces.Stack {
+	args := filters.NewArgs()
+	for _, flag := range flags {
+		for k, v := range flag {
+			args.Add(k, v)
+		}
+	}
+
+	curr, _ := client.NetworkList(
+		ctx,
+		types.NetworkListOptions{Filters: args},
+	)
+
+	if len(curr) == 0 {
+		return nil
+	} else {
+		stacks := make([]interfaces.Stack, len(curr))
+
+		for i, network := range curr {
+			stacks[i] = interfaces.Stack{
+				Name: network.Name,
+				ID:   network.ID,
+			}
+		}
+
+		return stacks
+	}
+}
+
+func (op DockerOperation) FindStack(flags []map[string]string) *interfaces.Stack {
+	curr := op.FindStacks(flags)
+
+	if curr == nil {
+		return nil
+	} else {
+		return &curr[0]
+	}
+}
+
+func (op DockerOperation) GetDefaultStack() *interfaces.Stack {
+	id := getMeta("stack:currentID")
+
+	if id == "" {
+		return nil
+	}
+
+	return op.FindStack([]map[string]string{
+		map[string]string{"id": id},
+	})
+}
+
+func (op DockerOperation) SetDefaultStack(name string) error {
+	stack := op.FindStack([]map[string]string{
+		map[string]string{"name": name},
+	})
+
+	if stack == nil {
+		fmt.Println("Not a stack, create stack then set as default")
+		return nil
+	}
+
+	putMeta("stack:currentID", stack.ID)
+	return nil
+}

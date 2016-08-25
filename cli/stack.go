@@ -60,15 +60,28 @@ var stackCurrentCmd = &cobra.Command{
 }
 
 func currentStack(c *cobra.Command, args []string) {
+	stack := backend.GetDefaultStack()
+
+	if stack == nil {
+		fmt.Println("You have yet to select a default stack")
+	} else {
+		fmt.Println(stack.Name)
+	}
 }
 
 // ===  Use  ====================================================================
 //
 var stackUseCmd = &cobra.Command{
-	Use:   "use",
+	Use:   "use (name)",
 	Short: "Set default stack",
-	Run:   useStack,
+	RunE:  useStack,
 }
 
-func useStack(c *cobra.Command, args []string) {
+func useStack(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing stack name")
+	}
+
+	backend.SetDefaultStack(args[0])
+	return nil
 }
