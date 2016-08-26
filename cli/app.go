@@ -3,7 +3,7 @@ package cli
 import "github.com/spf13/cobra"
 
 func init() {
-	appCmd.AddCommand(appListCmd)
+	appCmd.AddCommand(appStatusCmd)
 	RootCmd.AddCommand(appCmd)
 }
 
@@ -11,16 +11,16 @@ func init() {
 //
 var appCmd = &cobra.Command{
 	Use:   "app",
-	Short: "Deploy and manage Apps",
+	Short: "Manage running apps",
 }
 
-// ===  List  ===================================================================
+// ===  Status  ==================================================================
 //
-var appListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all running apps",
-	Run:   appList,
+var appStatusCmd = &cobra.Command{
+	Use:   "status [name]",
+	Short: "App status",
+	Run:   appStatus,
 }
 
-func appList(c *cobra.Command, args []string) {
+func appStatus(c *cobra.Command, args []string) {
 }

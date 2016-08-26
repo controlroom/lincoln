@@ -12,6 +12,7 @@ func init() {
 	stackCmd.AddCommand(stackListCmd)
 	stackCmd.AddCommand(stackUseCmd)
 	stackCmd.AddCommand(stackCurrentCmd)
+	stackCmd.AddCommand(stackDestroyCmd)
 
 	RootCmd.AddCommand(stackCmd)
 }
@@ -83,5 +84,22 @@ func useStack(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetDefaultStack(args[0])
+	return nil
+}
+
+// ===  Destroy  ================================================================
+//
+var stackDestroyCmd = &cobra.Command{
+	Use:   "destroy (name)",
+	Short: "Remove Stack and all containers within",
+	RunE:  destroyStack,
+}
+
+func destroyStack(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing stack name")
+	}
+
+	backend.DestroyStack(args[0])
 	return nil
 }

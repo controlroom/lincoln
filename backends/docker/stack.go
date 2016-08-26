@@ -25,14 +25,47 @@ func containsNetwork(name string) bool {
 
 func (op DockerOperation) CreateStack(name string) {
 	if !containsNetwork(name) {
-		client.NetworkCreate(ctx, name, types.NetworkCreate{
+		stack, _ := client.NetworkCreate(ctx, name, types.NetworkCreate{
 			CheckDuplicate: true,
 			Labels:         map[string]string{"RFStack": "true"},
 		})
+
 		fmt.Printf("Created stack: %s\n", name)
+		fmt.Println("Attaching default proxy container")
+
+		op.StartContainer(interfaces.ContainerStartOptions{
+			Name:  fmt.Sprintf("%s-root-proxy", name),
+			Image: "jwilder/nginx-proxy",
+			Stack: interfaces.Stack{
+				Name: name,
+				ID:   stack.ID,
+			},
+			Volumes: []string{"/var/run/docker.sock:/tmp/docker.sock:ro"},
+		})
+
+		fmt.Printf("Attached default proxy container: %s\n", name)
 	} else {
 		fmt.Printf("Stack already created: %s\n", name)
 	}
+}
+
+func (op DockerOperation) DestroyStack(name string) {
+	containers := op.FindContainers([]map[string]string{
+		map[string]string{"label": fmt.Sprintf("RFStack=%s", name)},
+	})
+
+	for _, container := range containers {
+		fmt.Printf("Removing container: %s\n", container.Name)
+		op.RemoveContainer(container)
+	}
+
+	err := client.NetworkRemove(ctx, name)
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s stack destroyed", name)
 }
 
 func (op DockerOperation) ListStacks() []interfaces.Stack {
