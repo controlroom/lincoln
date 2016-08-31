@@ -6,11 +6,20 @@ type Stack struct {
 }
 
 type ContainerStartOptions struct {
-	Image   string
-	Name    string
-	Cmd     []string
-	Stack   Stack
-	Volumes []string
+	Image        string
+	Name         string
+	Cmd          []string
+	Stack        Stack
+	Volumes      []string
+	Env          []string
+	CapAdd       []string
+	Ports        []string
+	PortBindings []string
+}
+
+type ContainerInfo struct {
+	Stack Stack
+	IP    string
 }
 
 type Container struct {
@@ -19,6 +28,9 @@ type Container struct {
 }
 
 type Operation interface {
+	// ---  General  --------------------------------------------------------------
+	EnsureBootstrapped()
+
 	// ---  Stacks  --------------------------------------------------------------
 	CreateStack(name string)
 	DestroyStack(name string)
@@ -29,8 +41,11 @@ type Operation interface {
 	FindStack(flags []map[string]string) *Stack
 
 	// ---  Containers  -----------------------------------------------------------
-	StartContainer(opts ContainerStartOptions)
-	RemoveContainer(container Container)
+	StartContainer(opts ContainerStartOptions) *Container
+	RemoveContainer(container *Container)
 	ListContainers() []Container
 	FindContainers(flags []map[string]string) []Container
+	FindContainer(flags []map[string]string) *Container
+	FindContainerByName(name string) *Container
+	InspectContainer(container *Container) ContainerInfo
 }
