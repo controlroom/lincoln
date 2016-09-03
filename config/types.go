@@ -1,6 +1,7 @@
 package config
 
 import (
+	"io/ioutil"
 	"log"
 
 	"github.com/mitchellh/mapstructure"
@@ -15,6 +16,7 @@ type Node struct {
 
 type Config struct {
 	Name          string
+	Description   string
 	Github        string
 	DefaultBranch string "yaml:default-branch"
 	Host          string
@@ -31,6 +33,15 @@ func ParseConfig(fileData []byte) *Config {
 	}
 
 	return &t
+}
+
+func ParseConfigFromPath(path string) *Config {
+	file, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	return ParseConfig(file)
 }
 
 func (config *Config) GetNodes() []Node {

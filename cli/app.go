@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/controlroom/lincoln/config"
 	"github.com/controlroom/lincoln/metadata"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,10 @@ func init() {
 	RootCmd.AddCommand(appCmd)
 }
 
+func sourcePath() string {
+	return metadata.GetMeta("app:currentSource")
+}
+
 // ===  Base Command  ===========================================================
 //
 var appCmd = &cobra.Command{
@@ -33,7 +38,7 @@ var appCmd = &cobra.Command{
 //
 var appStatusCmd = &cobra.Command{
 	Use:   "status [name]",
-	Short: "App status",
+	Short: "Status of loaded apps",
 	Run:   appStatus,
 }
 
@@ -49,6 +54,9 @@ var appListCmd = &cobra.Command{
 }
 
 func appList(c *cobra.Command, args []string) {
+	if sourcePath() != "" {
+		fmt.Println(config.FindAllLocalApps(sourcePath()))
+	}
 }
 
 // ===  Source  =================================================================
@@ -68,11 +76,10 @@ func exists(path string) error {
 
 func appSource(c *cobra.Command, args []string) {
 	if len(args) == 0 {
-		source := metadata.GetMeta("app:currentSource")
-		if source == "" {
+		if sourcePath() == "" {
 			fmt.Println("Source not set, please pass source path")
 		} else {
-			fmt.Printf("Source: %v", source)
+			fmt.Printf("Source: %v", sourcePath())
 		}
 	} else {
 		source, err := filepath.Abs(args[0])
