@@ -22,7 +22,7 @@ type Config struct {
 	Nodes map[string]interface{}
 }
 
-func GetConfig(fileData []byte) *Config {
+func ParseConfig(fileData []byte) *Config {
 	t := Config{}
 
 	err := yaml.Unmarshal(fileData, &t)
