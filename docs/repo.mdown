@@ -1,0 +1,17 @@
+### lincoln repo
+
+The repo should have these responsibilities:
+
+- Store manifests by application name
+- Resolve dependencies based on requested application and return manifest
+  dependency tree
+
+Here is an ideal scenario for a repo flow:
+
+  After a CI pipeline has determined that a committed change to an application is
+  valid then it will have a step to push the lincoln manifest. The lincoln repo
+  accepts the manifest and all relevant tags. Ideally, a Docker image is built and
+  stored in a registry with the same tags that are sent to lincoln with the
+  manifest push. The repo hashes the document and checks to see if it contains
+  the current version. If it does than it adds the tags into that version bucket.
+  If not, then it stores the yaml and begins a new bucket with those tags.

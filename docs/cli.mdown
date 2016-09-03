@@ -1,0 +1,6 @@
+### lincoln command line
+
+lincoln's command line interface should be a robust and simple way to create
+stacks and inject, remove, and update applications and their resources. As it
+will mostly be interacted with developers, it should also lean towards developer
+productivity.

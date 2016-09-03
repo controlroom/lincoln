@@ -1,0 +1,7 @@
+### lincoln design documents
+
+lincoln is attempting to solve a relatively complicated problem. Having a strong
+set of strong design documents will help with ensuring that the core of the
+application is well fleshed out.
+
+[stacks.mdown](./stacks.mdown)

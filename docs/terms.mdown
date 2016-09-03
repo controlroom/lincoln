@@ -1,0 +1,5 @@
+### General lincoln terms
+
+- Stack: A set of applications and resources grouped in a namespace
+- Repo: A seperate server that stores and resolves manifests on a per
+  application level
