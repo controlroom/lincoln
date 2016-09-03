@@ -4,4 +4,24 @@ lincoln is attempting to solve a relatively complicated problem. Having a strong
 set of strong design documents will help with ensuring that the core of the
 application is well fleshed out.
 
-[stacks.mdown](./stacks.mdown)
+### General Responsibilities
+
+Very high level of goals for this project
+
+- Bootstrap any application with _minimal_ required host machine dependencies
+- Locally deploy applications with all relevant dependences bootstrapped and
+  ready to work
+- Swap current running applications and resources for new versions or
+  configurations
+- Sync local code changes to deployed applications in development mode
+- Provide central store for all applications and their configurations
+- Allow deployment and changes via friendly web interface
+
+### Design topics
+
+- [terms.mdown](./terms.mdown) - Basic terms
+
+
+- [stacks.mdown](./stacks.mdown) - Stacks (Networks / Namespaces)
+- [cli.mdown](./cli.mdown) - Introduction to command line
+- [repo.mdown](./repo.mdown) - Centralized lincoln manifest store
