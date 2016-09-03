@@ -109,13 +109,7 @@ func (op DockerOperation) InspectContainer(container *interfaces.Container) inte
 func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
 	var containerId string
 
-	resp, err := client.ImagePull(ctx, opts.Image, types.ImagePullOptions{})
-	defer resp.Close()
-	jsonmessage.DisplayJSONMessagesStream(resp, os.Stderr, os.Stderr.Fd(), true, nil)
-
-	if err != nil {
-		panic(err)
-	}
+	getImage(opts.Image)
 
 	ports := make(map[nat.Port]struct{}, len(opts.Ports))
 	for _, port := range opts.Ports {
