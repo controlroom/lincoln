@@ -1,4 +1,4 @@
-package docker
+package metadata
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func getDB() *bolt.DB {
 	return db
 }
 
-func putMeta(key string, value string) {
+func PutMeta(key string, value string) {
 	db := getDB()
 	defer db.Close()
 
@@ -31,7 +31,7 @@ func putMeta(key string, value string) {
 	})
 }
 
-func getMeta(key string) string {
+func GetMeta(key string) string {
 	db := getDB()
 	defer db.Close()
 	var ret []byte

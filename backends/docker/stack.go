@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/controlroom/lincoln/interfaces"
+	"github.com/controlroom/lincoln/metadata"
+
 	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/filters"
 )
@@ -130,7 +132,7 @@ func (op DockerOperation) FindStack(flags []map[string]string) *interfaces.Stack
 }
 
 func (op DockerOperation) GetDefaultStack() *interfaces.Stack {
-	id := getMeta("stack:currentID")
+	id := metadata.GetMeta("stack:currentID")
 
 	if id == "" {
 		return nil
@@ -151,6 +153,6 @@ func (op DockerOperation) SetDefaultStack(name string) error {
 		return nil
 	}
 
-	putMeta("stack:currentID", stack.ID)
+	metadata.PutMeta("stack:currentID", stack.ID)
 	return nil
 }
