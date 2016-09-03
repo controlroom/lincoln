@@ -13,6 +13,7 @@ Very high level of goals for this project
   ready to work
 - Swap current running applications and resources for new versions or
   configurations
+- Clone application source code to local machine destination
 - Sync local code changes to deployed applications in development mode
 - Provide central store for all applications and their configurations
 - Allow deployment and changes via friendly web interface
