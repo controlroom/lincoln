@@ -2,15 +2,27 @@ package docker
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 
 	"github.com/controlroom/lincoln/interfaces"
 )
 
-var rootNetworkName string = "root"
-var proxyName string = "root-proxy"
-var dnsName string = "root-dns"
+const (
+	rootNetworkName string = "root"
+	proxyName       string = "root-proxy"
+	dnsName         string = "root-dns"
+	rootPort        int    = 4040
+	domain          string = "renew"
+)
 
 func (op DockerOperation) EnsureBootstrapped() {
+	if _, err := os.Stat("/etc/resolver/renew"); os.IsNotExist(err) {
+		fmt.Println("Setting up DNS. It might ask for your password")
+		cmd := "sudo mkdir -p /etc/resolver && echo 'nameserver 127.0.0.1' | sudo tee /etc/resolver/renew"
+		exec.Command("/bin/sh", "-c", cmd).Output()
+	}
+
 	if !hasNetwork(rootNetworkName) {
 		fmt.Println("Creating root network")
 
@@ -26,17 +38,14 @@ func (op DockerOperation) EnsureBootstrapped() {
 
 		proxy = op.StartContainer(interfaces.ContainerStartOptions{
 			Name:  proxyName,
-			Image: "jwilder/nginx-proxy",
+			Image: "jwilder/nginx-proxy:0.4.0",
 			Stack: interfaces.Stack{
 				Name: rootNetworkName,
 			},
-			Volumes: []string{"/var/run/docker.sock:/tmp/docker.sock:ro"},
+			Volumes:      []string{"/var/run/docker.sock:/tmp/docker.sock:ro"},
+			PortBindings: []string{fmt.Sprintf("%v:80", rootPort)},
 		})
 	}
-
-	proxyData, _ := client.ContainerInspect(ctx, proxy.ID)
-	proxyIP := proxyData.NetworkSettings.Networks["bridge"].IPAddress
-	fmt.Println(proxyIP)
 
 	dns := op.FindContainerByName(dnsName)
 
@@ -49,7 +58,7 @@ func (op DockerOperation) EnsureBootstrapped() {
 			Stack: interfaces.Stack{
 				Name: "bridge",
 			},
-			Cmd:          []string{"-S", fmt.Sprintf("/funky.net/%s", proxyIP)},
+			Cmd:          []string{"-S", fmt.Sprintf("/%s/127.0.0.1", domain)},
 			PortBindings: []string{"53:53/tcp", "53:53/udp"},
 		})
 	}
