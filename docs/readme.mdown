@@ -1,8 +1,8 @@
 ### lincoln design documents
 
 lincoln is attempting to solve a relatively complicated problem. Having a strong
-set of strong design documents will help with ensuring that the core of the
-application is well fleshed out.
+set of design documents will help with ensuring that the core of the application
+is built with clarity.
 
 ### General Responsibilities
 
@@ -20,8 +20,6 @@ Very high level of goals for this project
 ### Design topics
 
 - [terms.mdown](./terms.mdown) - Basic terms
-
-
 - [stacks.mdown](./stacks.mdown) - Stacks (Networks / Namespaces)
 - [cli.mdown](./cli.mdown) - Introduction to command line
 - [repo.mdown](./repo.mdown) - Centralized lincoln manifest store
