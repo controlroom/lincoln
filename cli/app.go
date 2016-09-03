@@ -20,6 +20,8 @@ func init() {
 	appCmd.AddCommand(appGetCmd)
 	appCmd.AddCommand(appListCmd)
 	appCmd.AddCommand(appSourceCmd)
+	appCmd.AddCommand(appUpDevCmd)
+	appCmd.AddCommand(appUpCmd)
 	RootCmd.AddCommand(appCmd)
 }
 
@@ -43,6 +45,28 @@ var appStatusCmd = &cobra.Command{
 }
 
 func appStatus(c *cobra.Command, args []string) {
+}
+
+// ===  UpDev  ==================================================================
+//
+var appUpDevCmd = &cobra.Command{
+	Use:   "up-dev [name]",
+	Short: "Deploy app locally in development mode (requires local copy)",
+	Run:   appUpDev,
+}
+
+func appUpDev(c *cobra.Command, args []string) {
+}
+
+// ===  Up  ==================================================================
+//
+var appUpCmd = &cobra.Command{
+	Use:   "up [name] [sha || branch]",
+	Short: "Deploy app locally from built images",
+	Run:   appUp,
+}
+
+func appUp(c *cobra.Command, args []string) {
 }
 
 // ===  List  ===================================================================
