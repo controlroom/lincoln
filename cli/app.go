@@ -9,6 +9,7 @@ import (
 func init() {
 	appCmd.AddCommand(appStatusCmd)
 	appCmd.AddCommand(appSourceCmd)
+	appCmd.AddCommand(appListCmd)
 	RootCmd.AddCommand(appCmd)
 }
 
@@ -28,6 +29,17 @@ var appStatusCmd = &cobra.Command{
 }
 
 func appStatus(c *cobra.Command, args []string) {
+}
+
+// ===  List  ===================================================================
+//
+var appListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List all applications",
+	Run:   appList,
+}
+
+func appList(c *cobra.Command, args []string) {
 }
 
 // ===  Source  =================================================================
