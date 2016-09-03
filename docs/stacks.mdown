@@ -17,8 +17,8 @@ stack as its target.
 
 #### Web interface
 
-Once a stack is created, lincoln will respond with a local URL that maps to the
-new stack. A user should be able to visit that root stack URL and be presented
+Once a stack is created, lincoln will respond with a local URI that maps to the
+new stack. A user should be able to visit that root stack URI and be presented
 with a friendly UI that interfaces with the repo and the current settings. From
 within this UI, user can utilize drag and drop and widgets to update the current
 stack configuration.
@@ -30,3 +30,17 @@ much to expect some users to have a fleet of stacks, or even really care about
 stacks at all. They might just want to interact with their company's app.  In
 this case, we should have a simpler interface for loading applications that have
 a basic stack default.
+
+### Stack URI
+
+A stack URI keeps this pattern:
+
+`{appName}.{stackName}.{companyName}.{tld}`
+
+A stack is accessible to the outside world from lincoln. Lincoln keeps track of
+each app that requires access and maps to a stack URI. The `name` that is
+specified in the `lincoln.yml` for each application maps to the `appName` part
+of the URI.
+
+Visiting the root stack URI should present the user with an interface for
+modifying that current stack.
