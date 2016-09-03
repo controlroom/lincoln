@@ -14,6 +14,11 @@ type Node struct {
 }
 
 type Config struct {
+	Name          string
+	Github        string
+	DefaultBranch string "yaml:default-branch"
+	Host          string
+
 	Nodes map[string]interface{}
 }
 
