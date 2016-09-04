@@ -21,6 +21,8 @@ Very high level of goals for this project
 ### Design topics
 
 - [terms.mdown](./terms.mdown) - Basic terms
+- [nodes.mdown](./nodes.mdown) - Nodes (Wrapped processes)
+- [dev-mode.mdown](./dev-mode.mdown) - Dev Mode (Running from local source code)
 - [stacks.mdown](./stacks.mdown) - Stacks (Networks / Namespaces)
 - [cli.mdown](./cli.mdown) - Introduction to command line
 - [repo.mdown](./repo.mdown) - Centralized lincoln manifest store

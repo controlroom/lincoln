@@ -1,0 +1,30 @@
+### lincoln dev mode
+
+Care must be taken when running applications in development mode. Relying on
+Docker syncing is not currently possible as it requires too many resources. We
+have to rely on syncing changes ourselves. IMO this is OK because Lincoln is
+made to run multiple projects, and this would probably be required even if we
+did not have the blatant Docker performance issues.
+
+### Docker Adapter
+
+- Require definition for injection base image (ex: `ruby-dev`)
+- Create project source Docker volume
+- Run `rsync` container with volume attached
+  - Attach ssh directory as volume
+  - Ensure dev volume is mounted to `/src`
+- Clone source from GitHub on first run
+  - Helps with performance as first `rsync` run is often very slow
+  - `docker exec {{rsync-container}} git clone git@github.com:{{github-location}}.git src`
+- Sync
+  - `dev_rsync_port=10873`
+  - `rsync_opts="--delete --exclude=log --exclude=tmp --exclude=.git"`
+  - `rsync -aqzP ${rsync_opts} ${project-path} rsync://localhost:${dev_rsync_port}/volume/.`
+- Listen for changes to project source
+  - Third party listen:
+    - `notifyloop ${project-path} rsync -avz ${rsync_opts} ${project-path} rsync://localhost:${dev_rsync_port}/volume/`
+
+#### Other Notes
+
+- Affecter commands (ex: bundle install) will require mounted dev volume to work
+  correctly
