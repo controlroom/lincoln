@@ -3,10 +3,14 @@
 The repo should have these responsibilities:
 
 - Store manifests by application name
+- Coordinate tags with manifest versions
+  - Keep history of all manifest versions and their tags
+- Deal with updated tags from branches that have rewritten history (force pushes)
+- Cache registry tags for faster version lookup performance
 - Resolve dependencies based on requested application and return manifest
   dependency tree
 
-Here is an ideal scenario for a repo flow:
+Here is a possible scenario for a repo flow:
 
     After a CI pipeline has determined that a committed change to an application is
     valid then it will have a step to push the lincoln manifest. The lincoln repo
@@ -15,3 +19,20 @@ Here is an ideal scenario for a repo flow:
     manifest push. The repo hashes the document and checks to see if it contains
     the current version. If it does than it adds the tags into that version bucket.
     If not, then it stores the yaml and begins a new bucket with those tags.
+
+
+API (rough high level):
+
+  - `/apps [GET]`
+    - A list of applications, latest tag, and date last updated
+  - `/apps/{{appName}} [GET]`
+    - Return config data for an application, or for all dependent applications.
+      One thing to note, dependencies can change based on the app version, so
+      this should take precautions to understand the changes can be sweeping for
+      all apps on a version bump.
+    - This also needs to be fast.
+  - `/authenticate [POST]`
+    - Connect with auth0 (or some other auth client) to allow for AD login. Once
+      a user is considered authenticated, return a JWT that will be used for all
+      other requests. This should not be overly complicated, but we should have
+      an effective way to secure access to an organization's applications.
