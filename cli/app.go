@@ -67,7 +67,7 @@ func appUpDev(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println(app)
+	fmt.Printf("%+v\n", app.Config.GetNodes())
 	return nil
 }
 

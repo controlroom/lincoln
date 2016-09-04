@@ -14,33 +14,34 @@ type App struct {
 	Config *Config
 }
 
-func FindLocalApp(path string, name string) (*App, error) {
-	appPath := fmt.Sprintf("%v/%v", path, name)
-	configPath := fmt.Sprintf("%v/lincoln.yml", appPath)
-
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		return nil, errors.New(fmt.Sprintf("%s does not exist or does not contain a lincoln.yml", name))
+func allLocalMatches(path string) []App {
+	matches, _ := filepath.Glob(fmt.Sprintf("%v/*/lincoln.yml", path))
+	apps := make([]App, len(matches))
+	for i, match := range matches {
+		os.Chdir(filepath.Dir(match))
+		branch, _ := exec.Command("git", "rev-parse", "--abbrev-ref", "head").Output()
+		apps[i] = App{
+			Branch: string(branch),
+			Path:   match,
+			Config: ParseConfigFromPath(match),
+		}
 	}
 
-	return &App{
-		Path:   appPath,
-		Config: ParseConfigFromPath(configPath),
-	}, nil
+	return apps
+}
+
+func FindLocalApp(path string, name string) (*App, error) {
+	matches := allLocalMatches(path)
+
+	for _, match := range matches {
+		if match.Config.Name == name {
+			return &match, nil
+		}
+	}
+
+	return nil, errors.New("Could not find app")
 }
 
 func FindAllLocalApps(path string) []App {
-	var apps []App
-	matches, _ := filepath.Glob(fmt.Sprintf("%v/*/lincoln.yml", path))
-	if len(matches) > 0 {
-		for _, fpath := range matches {
-			os.Chdir(filepath.Dir(fpath))
-			branch, _ := exec.Command("git", "rev-parse", "--abbrev-ref", "head").Output()
-			apps = append(apps, App{
-				Branch: string(branch),
-				Path:   fpath,
-				Config: ParseConfigFromPath(fpath),
-			})
-		}
-	}
-	return apps
+	return allLocalMatches(path)
 }
