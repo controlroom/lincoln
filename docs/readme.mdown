@@ -9,6 +9,9 @@ is built with clarity.
 Very high level of goals for this project
 
 - Bootstrap any application with _minimal_ required host machine dependencies
+
+Details:
+
 - Locally deploy applications with all relevant dependences bootstrapped and
   ready to work
 - Swap current running applications and resources for new versions or
@@ -17,6 +20,8 @@ Very high level of goals for this project
 - Sync local code changes to deployed applications in development mode
 - Provide central store for all applications and their configurations
 - Allow deployment and changes via friendly web interface
+- Provide hosted version with optimizations and configuration for long running
+  process and many stacks
 
 ### Design topics
 
