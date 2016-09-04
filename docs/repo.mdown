@@ -25,13 +25,22 @@ API (rough high level):
 
   - `/apps [GET]`
     - A list of applications, latest tag, and date last updated
+    - This needs to be stupid fast. 50-100ms or faster. Lincoln will query on
+      this every time it asks for a list of applications
+  - `/apps [POST]`
+    - This accepts a full manifest and an unlimited set of tags to associate
+      with. Repo will parse the manifest to determine how it gets stored and
+      indexed.
+    - We need to spend some thought about how to override already existing
+      tagged manifests. What if something different comes through with a tag
+      that is stored. Do we wipe it out?
   - `/apps/{{appName}} [GET]`
     - Return config data for an application, or for all dependent applications.
       One thing to note, dependencies can change based on the app version, so
       this should take precautions to understand the changes can be sweeping for
       all apps on a version bump.
     - This also needs to be fast.
-  - `/authenticate [POST]`
+  - `/auth [POST]`
     - Connect with auth0 (or some other auth client) to allow for AD login. Once
       a user is considered authenticated, return a JWT that will be used for all
       other requests. This should not be overly complicated, but we should have
