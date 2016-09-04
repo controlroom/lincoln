@@ -11,29 +11,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var appGetAll bool
-
+// Bootstrap lincoln app command
 func init() {
-	appGetCmd.Flags().BoolVar(&appGetAll, "all", false, "Clone all apps")
+	appCmd := &cobra.Command{
+		Use:   "app",
+		Short: "Manage running apps",
+	}
 
 	appCmd.AddCommand(appStatusCmd)
-	appCmd.AddCommand(appGetCmd)
 	appCmd.AddCommand(appListCmd)
 	appCmd.AddCommand(appSourceCmd)
-	appCmd.AddCommand(appUpDevCmd)
 	appCmd.AddCommand(appUpCmd)
+	attachGet(appCmd)
+	attachUpDev(appCmd)
+
 	RootCmd.AddCommand(appCmd)
 }
 
 func sourcePath() string {
 	return metadata.GetMeta("app:currentSource")
-}
-
-// ===  Base Command  ===========================================================
-//
-var appCmd = &cobra.Command{
-	Use:   "app",
-	Short: "Manage running apps",
 }
 
 // ===  Status  ==================================================================
@@ -50,12 +46,29 @@ func appStatus(c *cobra.Command, args []string) {
 // ===  UpDev  ==================================================================
 //
 var appUpDevCmd = &cobra.Command{
-	Use:   "up-dev [name]",
+	Use:   "up-dev [appName] (nodeName)",
 	Short: "Deploy app locally in development mode (requires local copy)",
-	Run:   appUpDev,
+	RunE:  appUpDev,
 }
 
-func appUpDev(c *cobra.Command, args []string) {
+func attachUpDev(appCmd *cobra.Command) {
+	appCmd.AddCommand(appUpDevCmd)
+}
+
+func appUpDev(c *cobra.Command, args []string) error {
+	if sourcePath() == "" {
+		return errors.New("Missing source path")
+	} else if len(args) == 0 {
+		return errors.New("Missing app name")
+	}
+
+	app, err := config.FindLocalApp(sourcePath(), args[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(app)
+	return nil
 }
 
 // ===  Up  ==================================================================
@@ -63,10 +76,11 @@ func appUpDev(c *cobra.Command, args []string) {
 var appUpCmd = &cobra.Command{
 	Use:   "up [name] [sha || branch]",
 	Short: "Deploy app locally from built images",
-	Run:   appUp,
+	RunE:  appUp,
 }
 
-func appUp(c *cobra.Command, args []string) {
+func appUp(c *cobra.Command, args []string) error {
+	return nil
 }
 
 // ===  List  ===================================================================
@@ -136,7 +150,7 @@ func appSource(c *cobra.Command, args []string) {
 //
 var appGetCmd = &cobra.Command{
 	Use:   "get [apps]",
-	Short: "Git clone application into projects folder",
+	Short: "Git clone application into source directory",
 	Long: `
 Pull project source code into local destination. The path you pass into
 destination should be the root folder for all your applications. Lincoln will
@@ -145,6 +159,13 @@ remember where you cloned the project, so you can swap in a development version
 to a stack with ease.
 	`,
 	RunE: appGet,
+}
+
+var appGetAll bool
+
+func attachGet(appCmd *cobra.Command) {
+	appGetCmd.Flags().BoolVar(&appGetAll, "all", false, "Clone all apps")
+	appCmd.AddCommand(appGetCmd)
 }
 
 func appGet(c *cobra.Command, args []string) error {

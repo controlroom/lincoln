@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,20 @@ type App struct {
 	Branch string
 	Path   string
 	Config *Config
+}
+
+func FindLocalApp(path string, name string) (*App, error) {
+	appPath := fmt.Sprintf("%v/%v", path, name)
+	configPath := fmt.Sprintf("%v/lincoln.yml", appPath)
+
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return nil, errors.New(fmt.Sprintf("%s does not exist or does not contain a lincoln.yml", name))
+	}
+
+	return &App{
+		Path:   appPath,
+		Config: ParseConfigFromPath(configPath),
+	}, nil
 }
 
 func FindAllLocalApps(path string) []App {
