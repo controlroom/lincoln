@@ -50,7 +50,13 @@ var stackListCmd = &cobra.Command{
 }
 
 func listStacks(c *cobra.Command, args []string) {
-	fmt.Println(backend.ListStacks())
+	fmt.Println("-- Stack list")
+
+	table := getTable("Name")
+	for _, stack := range backend.ListStacks() {
+		table.AppendLine(stack.Name)
+	}
+	table.Render()
 }
 
 // ===  Current  ================================================================

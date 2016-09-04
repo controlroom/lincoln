@@ -78,12 +78,18 @@ var appListCmd = &cobra.Command{
 }
 
 func appList(c *cobra.Command, args []string) {
+	fmt.Println("-- App list")
 	if sourcePath() != "" {
 		apps := config.FindAllLocalApps(sourcePath())
 
-		table := getTable("Name", "Local", "Branch")
+		table := getTable("Name", "Local", "Branch", "Description")
 		for _, app := range apps {
-			table.AppendLine(app.Config.Name, yellowOut("*"), app.Branch)
+			table.AppendLine(
+				app.Config.Name,
+				yellowOut("*"),
+				app.Branch,
+				app.Config.Description,
+			)
 		}
 		table.Render()
 	}
