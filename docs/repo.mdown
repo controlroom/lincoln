@@ -42,6 +42,11 @@ API (rough high level):
       version, so we should take precautions to understand that changes can be
       sweeping for all apps on a version bump.
     - This also needs to be fast.
+  - `/apps/{{appName}}/tags [GET]`
+    - Respond with a list of tags and possibly some sort of filtering option.
+      Maybe we can determine if a tag is a branch only return those. This would
+      be a convenience as Lincoln Repo can act as a search gateway for
+      images, as opposed to adding that functionality to Docker Registry.
   - `/auth [POST]`
     - Connect with auth0 (or some other auth client) to allow for AD login. Once
       a user is considered authenticated, return a JWT that will be used for all
