@@ -9,9 +9,12 @@ import (
 )
 
 type Node struct {
-	Name     string
-	Cmd      string
-	Replicas int
+	Name      string
+	Cmd       string
+	Exposed   string
+	SubDomain string "yaml:sub-domain"
+	Balanced  bool
+	Replicas  int
 }
 
 type Config struct {

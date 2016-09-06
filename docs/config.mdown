@@ -1,0 +1,47 @@
+### lincoln.yml
+
+#### Sample confguration
+
+```yaml
+name: Twitter
+github: twitter/twitter
+default-branch: develop
+host: twitter.dev
+
+nodes:
+  web:
+    cmd: "bundle exec thin"
+    exposed: true
+    balanced: true
+    replicas: 3
+  worker:
+    cmd: "bundle exec worker"
+    replicas: 5
+  email:
+    cmd: "bundle exec email-worker"
+    sub-domain: email
+  rspec: "bundle exec rspec"
+  cucumber: "bundle exec cucumber"
+
+node-sets:
+  testing:
+    - rspec
+    - cucumber
+  default:
+    - web
+    - worker
+    - email
+
+deps:
+  resources:
+    - postgres:9.3
+    - redis:latest
+
+  apps:
+    - name: streaming
+      github: twitter/streaming
+      host: streaming.dev
+    - name: reporting
+      github: twitter/reporting
+      host: reporting.dev
+```

@@ -26,6 +26,7 @@ Details:
 ### Design topics
 
 - [terms.mdown](./terms.mdown) - Basic terms
+- [config.mdown](./config.mdown) - Configuration (lincoln.yml)
 - [nodes.mdown](./nodes.mdown) - Nodes (Wrapped processes)
 - [dev-mode.mdown](./dev-mode.mdown) - Dev Mode (Running from local source code)
 - [stacks.mdown](./stacks.mdown) - Stacks (Networks / Namespaces)
