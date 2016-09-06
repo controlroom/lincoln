@@ -1,16 +1,12 @@
-### lincoln design documents
-
-lincoln is attempting to solve a relatively complicated problem. Having a strong
-set of design documents will help with ensuring that the core of the application
-is built with clarity.
+## Lincoln design
 
 ### General Responsibilities
 
-Very high level of goals for this project
-
 - Bootstrap any application with _minimal_ required host machine dependencies
+- After Developer / QA members experience Lincoln, they should not know how they
+  ever got anything done without it.
 
-Details:
+#### Details:
 
 - Locally deploy applications with all relevant dependences bootstrapped and
   ready to work
@@ -23,7 +19,7 @@ Details:
 - Provide hosted version with optimizations and configuration for long running
   process and many stacks
 
-### Design topics
+### Topics
 
 - [terms.mdown](./terms.mdown) - Basic terms
 - [config.mdown](./config.mdown) - Configuration (lincoln.yml)

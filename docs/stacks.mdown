@@ -1,4 +1,4 @@
-### lincoln stacks
+### Lincoln stacks
 
 Stacks are a logical grouping of applications and resources. In practice they
 are often mapped to something like a feature branch. Stacks are ephemeral by
@@ -11,13 +11,13 @@ There are a few ways available to interact with stacks:
 #### Command line
 
 When working in the shell, you can create and remove stacks at will. Once a
-stack is created, you can tell lincoln that you want that stack to be the
+stack is created, you can tell Lincoln that you want that stack to be the
 `current` working version. All app commands after that will use the current
 stack as its target.
 
 #### Web interface
 
-Once a stack is created, lincoln will respond with a local URI that maps to the
+Once a stack is created, Lincoln will respond with a local URI that maps to the
 new stack. A user should be able to visit that root stack URI and be presented
 with a friendly UI that interfaces with the repo and the current settings. From
 within this UI, user can utilize drag and drop and widgets to update the current
@@ -37,7 +37,7 @@ A stack URI keeps this pattern:
 
 `{appName}.{stackName}.{companyName}.{tld}`
 
-A stack is accessible to the outside world from lincoln. Lincoln keeps track of
+A stack is accessible to the outside world from Lincoln. Lincoln keeps track of
 each app that requires access and maps to a stack URI. The `name` that is
 specified in the `lincoln.yml` for each application maps to the `appName` part
 of the URI.

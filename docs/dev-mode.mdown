@@ -1,8 +1,8 @@
-### lincoln dev mode
+### Lincoln dev mode
 
 Care must be taken when running applications in development mode. Relying on
 Docker syncing is not currently possible as it requires too many resources. We
-have to rely on syncing changes ourselves. IMO this is OK because Lincoln is
+have to perform sync on changes ourselves. IMO this is OK because Lincoln is
 made to run multiple projects, and this would probably be required even if we
 did not have the blatant Docker performance issues.
 
