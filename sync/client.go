@@ -27,3 +27,12 @@ func (c *Client) Watch(name string, path string) (bool, error) {
 	err := c.connection.Call("RPCSync.Watch", info, &added)
 	return added, err
 }
+
+func (c *Client) UnWatch(name string) (bool, error) {
+	var removed bool
+	info := ProjectSyncInfo{
+		Name: name,
+	}
+	err := c.connection.Call("RPCSync.UnWatch", info, &removed)
+	return removed, err
+}

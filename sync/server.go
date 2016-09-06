@@ -15,8 +15,13 @@ import (
 	"github.com/fsnotify/fsevents"
 )
 
+type watcherData struct {
+	eventStream *fsevents.EventStream
+	closer      chan bool
+}
+
 type RPCSync struct {
-	watches map[string]chan []fsevents.Event
+	watches map[string]watcherData
 	res     chan ProjectSyncInfo
 	mu      *sync.RWMutex
 }
@@ -28,7 +33,7 @@ type ProjectSyncInfo struct {
 
 func NewSync(res chan ProjectSyncInfo) *RPCSync {
 	return &RPCSync{
-		watches: make(map[string]chan []fsevents.Event),
+		watches: make(map[string]watcherData),
 		res:     res,
 		mu:      &sync.RWMutex{},
 	}
@@ -40,18 +45,40 @@ func (s *RPCSync) Watch(info *ProjectSyncInfo, ack *bool) error {
 
 	fmt.Printf("Recieved new project: %v\n", *info)
 
-	ec := getEvents(info.Path)
+	closer := make(chan bool, 1)
+	es, ec := getEvents(info.Path)
+	s.watches[info.Name] = watcherData{
+		eventStream: es,
+		closer:      closer,
+	}
 
 	go func() {
-		for msg := range ec {
+	replay:
+		select {
+		case msg := <-ec:
 			for _, event := range msg {
 				s.res <- ProjectSyncInfo{
 					Name: info.Name,
 					Path: event.Path,
 				}
 			}
+			goto replay
+		case <-closer:
+			fmt.Println("closing")
 		}
 	}()
+
+	return nil
+}
+
+func (s *RPCSync) UnWatch(info *ProjectSyncInfo, ack *bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	data := s.watches[info.Name]
+	data.eventStream.Stop()
+	data.closer <- true
+	delete(s.watches, info.Name)
 
 	return nil
 }
@@ -106,7 +133,7 @@ func allDirs(path string, dirs *[]string, ignored map[string]bool) {
 	}
 }
 
-func getEvents(path string) chan []fsevents.Event {
+func getEvents(path string) (*fsevents.EventStream, chan []fsevents.Event) {
 	dirs := []string{path}
 	allDirs(path, &dirs, map[string]bool{".git": true})
 
@@ -116,5 +143,5 @@ func getEvents(path string) chan []fsevents.Event {
 		Flags:   4,
 	}
 	es.Start()
-	return es.Events
+	return es, es.Events
 }

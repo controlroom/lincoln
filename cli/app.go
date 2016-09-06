@@ -25,6 +25,7 @@ func init() {
 	appCmd.AddCommand(appSourceCmd)
 	appCmd.AddCommand(appUpCmd)
 	appCmd.AddCommand(appWatchCmd)
+	appCmd.AddCommand(appDownCmd)
 	attachGet(appCmd)
 	attachUpDev(appCmd)
 
@@ -33,6 +34,16 @@ func init() {
 
 func sourcePath() string {
 	return metadata.GetMeta("app:currentSource")
+}
+
+func rpcClient() *sync.Client {
+	client, err := sync.NewClient("localhost:9876", time.Millisecond*500)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return client
 }
 
 // ===  Status  ==================================================================
@@ -71,11 +82,7 @@ func appUpDev(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetupSync(app)
-	client, err := sync.NewClient("localhost:9876", time.Millisecond*500)
-	if err != nil {
-		panic(err)
-	}
-	client.Watch(app.Config.Name, app.Path)
+	rpcClient().Watch(app.Config.Name, app.Path)
 	return nil
 }
 
@@ -101,6 +108,30 @@ var appUpCmd = &cobra.Command{
 }
 
 func appUp(c *cobra.Command, args []string) error {
+	return nil
+}
+
+// ===  Down  ===================================================================
+//
+var appDownCmd = &cobra.Command{
+	Use:   "down [name]",
+	Short: "Remove appliction from stack",
+	RunE:  appDown,
+}
+
+func appDown(c *cobra.Command, args []string) error {
+	if sourcePath() == "" {
+		return errors.New("Missing source path")
+	} else if len(args) == 0 {
+		return errors.New("Missing app name")
+	}
+
+	app, err := config.FindLocalApp(sourcePath(), args[0])
+	if err != nil {
+		return err
+	}
+
+	rpcClient().UnWatch(app.Config.Name)
 	return nil
 }
 
