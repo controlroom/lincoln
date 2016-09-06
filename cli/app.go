@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/controlroom/lincoln/config"
 	"github.com/controlroom/lincoln/metadata"
+	"github.com/controlroom/lincoln/sync"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +24,7 @@ func init() {
 	appCmd.AddCommand(appListCmd)
 	appCmd.AddCommand(appSourceCmd)
 	appCmd.AddCommand(appUpCmd)
+	appCmd.AddCommand(appWatchCmd)
 	attachGet(appCmd)
 	attachUpDev(appCmd)
 
@@ -67,7 +70,25 @@ func appUpDev(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("%+v\n", app.Config.GetNodes())
+	backend.SetupSync(app)
+	client, err := sync.NewClient("localhost:9876", time.Millisecond*500)
+	if err != nil {
+		panic(err)
+	}
+	client.Watch(app.Config.Name, app.Path)
+	return nil
+}
+
+// ===  Watch  ==================================================================
+//
+var appWatchCmd = &cobra.Command{
+	Use:   "watch",
+	Short: "Watch for changes in projects that are in development mode",
+	RunE:  appWatch,
+}
+
+func appWatch(c *cobra.Command, args []string) error {
+	sync.StartServer(9876)
 	return nil
 }
 

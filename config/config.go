@@ -22,7 +22,7 @@ func allLocalMatches(path string) []App {
 		branch, _ := exec.Command("git", "rev-parse", "--abbrev-ref", "head").Output()
 		apps[i] = App{
 			Branch: string(branch),
-			Path:   match,
+			Path:   filepath.Dir(match),
 			Config: ParseConfigFromPath(match),
 		}
 	}

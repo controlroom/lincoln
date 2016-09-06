@@ -1,5 +1,7 @@
 package interfaces
 
+import "github.com/controlroom/lincoln/config"
+
 type Stack struct {
 	Name string
 	ID   string
@@ -48,4 +50,7 @@ type Operation interface {
 	FindContainer(flags []map[string]string) *Container
 	FindContainerByName(name string) *Container
 	InspectContainer(container *Container) ContainerInfo
+
+	// ---  Dev Mode  -------------------------------------------------------------
+	SetupSync(app *config.App)
 }
