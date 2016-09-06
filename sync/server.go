@@ -43,30 +43,32 @@ func (s *RPCSync) Watch(info *ProjectSyncInfo, ack *bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	fmt.Printf("Recieved new project: %v\n", *info)
+	if _, ok := s.watches[info.Name]; !ok {
+		fmt.Printf("Recieved new project: %v\n", *info)
 
-	closer := make(chan bool, 1)
-	es, ec := getEvents(info.Path)
-	s.watches[info.Name] = watcherData{
-		eventStream: es,
-		closer:      closer,
-	}
-
-	go func() {
-	replay:
-		select {
-		case msg := <-ec:
-			for _, event := range msg {
-				s.res <- ProjectSyncInfo{
-					Name: info.Name,
-					Path: event.Path,
-				}
-			}
-			goto replay
-		case <-closer:
-			fmt.Println("closing")
+		closer := make(chan bool, 1)
+		es, ec := getEvents(info.Path)
+		s.watches[info.Name] = watcherData{
+			eventStream: es,
+			closer:      closer,
 		}
-	}()
+
+		go func() {
+		replay:
+			select {
+			case msg := <-ec:
+				for _, event := range msg {
+					s.res <- ProjectSyncInfo{
+						Name: info.Name,
+						Path: event.Path,
+					}
+				}
+				goto replay
+			case <-closer:
+				fmt.Println(fmt.Sprintf("Closing %v", info.Name))
+			}
+		}()
+	}
 
 	return nil
 }
@@ -75,10 +77,11 @@ func (s *RPCSync) UnWatch(info *ProjectSyncInfo, ack *bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	data := s.watches[info.Name]
-	data.eventStream.Stop()
-	data.closer <- true
-	delete(s.watches, info.Name)
+	if data, ok := s.watches[info.Name]; ok {
+		data.eventStream.Stop()
+		data.closer <- true
+		delete(s.watches, info.Name)
+	}
 
 	return nil
 }
