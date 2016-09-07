@@ -9,8 +9,9 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-var metaBucket []byte = []byte("lincoln-meta")
+var metaBucket string = "lincoln-meta"
 
+// Helper for extracting bolt.DB connector
 func getDB() *bolt.DB {
 	path := fmt.Sprintf("%s/.lincoln.db", os.Getenv("HOME"))
 	db, err := bolt.Open(path, 0600, &bolt.Options{Timeout: 1 * time.Second})
@@ -20,24 +21,31 @@ func getDB() *bolt.DB {
 	return db
 }
 
-func PutMeta(key string, value string) {
+// ===  Namespaced Buckets  =====================================================
+type Namespace []byte
+
+func NS(n string) Namespace {
+	return Namespace(n)
+}
+
+func (n Namespace) Put(key string, value string) {
 	db := getDB()
 	defer db.Close()
 
 	db.Update(func(tx *bolt.Tx) error {
-		b, _ := tx.CreateBucketIfNotExists(metaBucket)
+		b, _ := tx.CreateBucketIfNotExists(n)
 		b.Put([]byte(key), []byte(value))
 		return nil
 	})
 }
 
-func GetMeta(key string) string {
+func (n Namespace) Get(key string) string {
 	db := getDB()
 	defer db.Close()
 	var ret []byte
 
 	db.Update(func(tx *bolt.Tx) error {
-		b, _ := tx.CreateBucketIfNotExists(metaBucket)
+		b, _ := tx.CreateBucketIfNotExists(n)
 		res := b.Get([]byte(key))
 		ret = make([]byte, len(res))
 		copy(ret, res)
@@ -45,4 +53,13 @@ func GetMeta(key string) string {
 	})
 
 	return string(ret)
+}
+
+// ===  Metadata Defaults  ======================================================
+func PutMeta(key string, value string) {
+	NS(metaBucket).Put(key, value)
+}
+
+func GetMeta(key string) string {
+	return NS(metaBucket).Get(key)
 }
