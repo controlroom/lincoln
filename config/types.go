@@ -27,6 +27,12 @@ type Config struct {
 	Nodes map[string]interface{}
 }
 
+type App struct {
+	Branch string
+	Path   string
+	Config *Config
+}
+
 func ParseConfig(fileData []byte) *Config {
 	t := Config{}
 

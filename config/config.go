@@ -8,12 +8,6 @@ import (
 	"path/filepath"
 )
 
-type App struct {
-	Branch string
-	Path   string
-	Config *Config
-}
-
 func allLocalMatches(path string) []App {
 	matches, _ := filepath.Glob(fmt.Sprintf("%v/*/lincoln.yml", path))
 	apps := make([]App, len(matches))
