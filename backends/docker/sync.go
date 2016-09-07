@@ -41,3 +41,7 @@ func (op DockerOperation) SetupSync(app *config.App) {
 		})
 	}
 }
+
+func (op DockerOperation) Sync(app string) {
+	fmt.Printf("%v: syncing\n", app)
+}
