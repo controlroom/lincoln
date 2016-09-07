@@ -4,6 +4,8 @@ import (
 	"net"
 	"net/rpc"
 	"time"
+
+	"github.com/controlroom/lincoln/interfaces"
 )
 
 type Client struct {
@@ -18,11 +20,12 @@ func NewClient(dsn string, timeout time.Duration) (*Client, error) {
 	return &Client{connection: rpc.NewClient(connection)}, nil
 }
 
-func (c *Client) Watch(name string, path string) (bool, error) {
+func (c *Client) Watch(backend interfaces.Operation, name string, path string) (bool, error) {
 	var added bool
 	info := ProjectSyncInfo{
-		Name: name,
-		Path: path,
+		Backend: backend,
+		Name:    name,
+		Path:    path,
 	}
 	err := c.connection.Call("RPCSync.Watch", info, &added)
 	return added, err

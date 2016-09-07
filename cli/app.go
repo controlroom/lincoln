@@ -82,7 +82,10 @@ func appUpDev(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetupSync(app)
-	rpcClient().Watch(app.Config.Name, app.Path)
+	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+	if err != nil {
+		panic(err)
+	}
 	return nil
 }
 

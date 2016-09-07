@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"encoding/gob"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/controlroom/lincoln/backends/docker"
+	"github.com/controlroom/lincoln/interfaces"
 	"github.com/fsnotify/fsevents"
 )
 
@@ -27,8 +30,9 @@ type RPCSync struct {
 }
 
 type ProjectSyncInfo struct {
-	Name string
-	Path string
+	Backend interfaces.Operation
+	Name    string
+	Path    string
 }
 
 func NewSync(res chan ProjectSyncInfo) *RPCSync {
@@ -59,8 +63,9 @@ func (s *RPCSync) Watch(info *ProjectSyncInfo, ack *bool) error {
 			case msg := <-ec:
 				for _, event := range msg {
 					s.res <- ProjectSyncInfo{
-						Name: info.Name,
-						Path: event.Path,
+						Backend: info.Backend,
+						Name:    info.Name,
+						Path:    event.Path,
 					}
 				}
 				goto replay
@@ -110,7 +115,7 @@ func StartServer(port int) {
 
 	go func() {
 		for info := range res {
-			fmt.Printf("Project: %v, File: %v\n", info.Name, info.Path)
+			info.Backend.Sync(info.Name)
 		}
 	}()
 
@@ -147,4 +152,8 @@ func getEvents(path string) (*fsevents.EventStream, chan []fsevents.Event) {
 	}
 	es.Start()
 	return es, es.Events
+}
+
+func init() {
+	gob.Register(docker.DockerOperation{})
 }
