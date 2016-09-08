@@ -53,5 +53,5 @@ type Operation interface {
 
 	// ---  Dev Mode  -------------------------------------------------------------
 	SetupSync(app *config.App)
-	Sync(app string)
+	Sync(app string, path string)
 }

@@ -55,6 +55,11 @@ func (n Namespace) Get(key string) string {
 	return string(ret)
 }
 
+// ===  Specialized Namespaces  =================================================
+func AppNS(n string) Namespace {
+	return NS(fmt.Sprintf("app:%v", n))
+}
+
 // ===  Metadata Defaults  ======================================================
 func PutMeta(key string, value string) {
 	NS(metaBucket).Put(key, value)
