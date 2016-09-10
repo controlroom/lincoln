@@ -11,7 +11,7 @@ import (
 type Node struct {
 	Name      string
 	Cmd       string
-	Exposed   string
+	Exposed   bool
 	SubDomain string "yaml:sub-domain"
 	Balanced  bool
 	Replicas  int
@@ -33,6 +33,7 @@ type App struct {
 	Config *Config
 }
 
+// Extract yaml file data([]byte) into Config struct
 func ParseConfig(fileData []byte) *Config {
 	t := Config{}
 
@@ -53,6 +54,22 @@ func ParseConfigFromPath(path string) *Config {
 	return ParseConfig(file)
 }
 
+// Allows for multiple shapes of yaml nodes
+//
+// Yaml may look like:
+//
+// nodes:
+//   node1: bundle exec command
+//
+// Or it might look like
+//
+// nodes:
+//   node1:
+//		 cmd: bundle exec command
+//     exposed: true
+//
+// Which is the default with only one command. Both commands are essentially
+// equal.
 func (config *Config) GetNodes() []Node {
 	var nodes []Node
 	for k, v := range config.Nodes {
@@ -63,6 +80,10 @@ func (config *Config) GetNodes() []Node {
 			res.Cmd = cmd
 		default:
 			mapstructure.Decode(v, &res)
+		}
+
+		if len(config.Nodes) == 1 {
+			res.Exposed = true
 		}
 
 		res.Name = k
