@@ -123,7 +123,7 @@ func StartServer(port int) {
 
 	go func() {
 		for info := range res {
-			info.Backend.Sync(info.Name, info.Path)
+			info.Backend.Sync(info.Name, info.Path, false)
 		}
 	}()
 

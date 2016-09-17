@@ -42,6 +42,9 @@ func (op DockerOperation) SetupSync(app *config.App) {
 			PortBindings: []string{fmt.Sprintf("%v:873", port)},
 		})
 		metadata.AppNS(app.Config.Name).Put("syncPort", fmt.Sprintf("%v", port))
+
+		fmt.Println("Syncing source")
+		op.Sync(app.Config.Name, app.Path, true)
 	}
 }
 
@@ -49,10 +52,17 @@ var rsyncOpts []string = []string{
 	"-aizP", "--delete", "--exclude=log", "--exclude=tmp", "--exclude=.git",
 }
 
-func (op DockerOperation) Sync(app string, path string) {
+func (op DockerOperation) Sync(app string, path string, quiet bool) {
+	var opts string
+
+	if quiet {
+		opts = "-q"
+	}
+
 	port := metadata.AppNS(app).Get("syncPort")
+	path = fmt.Sprintf("%v/.", path)
 	uri := fmt.Sprintf("rsync://localhost:%v/volume/.", port)
-	rsyncArgs := append(rsyncOpts, path, uri)
+	rsyncArgs := append(rsyncOpts, opts, path, uri)
 	cmd := exec.Command("rsync", rsyncArgs...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

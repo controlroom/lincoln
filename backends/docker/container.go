@@ -146,19 +146,16 @@ func buildHostConfig(opts interfaces.ContainerStartOptions) *container.HostConfi
 		CapAdd:       strslice.StrSlice(opts.CapAdd),
 		Binds:        opts.Volumes,
 		VolumesFrom:  opts.VolumesFrom,
+		AutoRemove:   true,
 		PortBindings: buildPortBindings(opts.PortBindings),
 	}
 }
 
 func buildContainerConfig(opts interfaces.ContainerStartOptions) *container.Config {
 	return &container.Config{
-		AttachStdin:  false,
-		AttachStdout: false,
-		AttachStderr: false,
-		Tty:          false,
 		Image:        opts.Image,
+		WorkingDir:   "/src",
 		Env:          opts.Env,
-		OpenStdin:    false,
 		Cmd:          strslice.StrSlice(opts.Cmd),
 		ExposedPorts: buildPorts(opts.Ports),
 		Labels: map[string]string{
@@ -170,13 +167,10 @@ func buildContainerConfig(opts interfaces.ContainerStartOptions) *container.Conf
 func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
 	getImage(opts.Image)
 
-	hostConfig := buildHostConfig(opts)
-	hostConfig.AutoRemove = true
-
 	createRes, err := client.ContainerCreate(
 		ctx,
 		buildContainerConfig(opts),
-		hostConfig,
+		buildHostConfig(opts),
 		buildNetworkConfig(opts),
 		opts.Name,
 	)
