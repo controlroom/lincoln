@@ -39,7 +39,7 @@ func (op DockerOperation) EnsureBootstrapped() {
 		proxy = op.StartContainer(interfaces.ContainerStartOptions{
 			Name:  proxyName,
 			Image: "jwilder/nginx-proxy:0.4.0",
-			Stack: interfaces.Stack{
+			Stack: &interfaces.Stack{
 				Name: rootNetworkName,
 			},
 			Volumes:      []string{"/var/run/docker.sock:/tmp/docker.sock:ro"},
@@ -55,7 +55,7 @@ func (op DockerOperation) EnsureBootstrapped() {
 			Name:   dnsName,
 			Image:  "andyshinn/dnsmasq:2.76",
 			CapAdd: []string{"NET_ADMIN"},
-			Stack: interfaces.Stack{
+			Stack: &interfaces.Stack{
 				Name: "bridge",
 			},
 			Cmd:          []string{"-S", fmt.Sprintf("/%s/127.0.0.1", domain)},

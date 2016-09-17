@@ -9,6 +9,7 @@ import (
 
 	"github.com/controlroom/lincoln/config"
 	"github.com/controlroom/lincoln/metadata"
+	"github.com/controlroom/lincoln/operations"
 	"github.com/controlroom/lincoln/sync"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +27,7 @@ func init() {
 	appCmd.AddCommand(appUpCmd)
 	appCmd.AddCommand(appWatchCmd)
 	appCmd.AddCommand(appDownCmd)
+	appCmd.AddCommand(appRunCmd)
 	attachGet(appCmd)
 	attachUpDev(appCmd)
 
@@ -60,7 +62,7 @@ func appStatus(c *cobra.Command, args []string) {
 // ===  UpDev  ==================================================================
 //
 var appUpDevCmd = &cobra.Command{
-	Use:   "up-dev [appName] (nodeName)",
+	Use:   "up-dev app-name [node-name...]",
 	Short: "Deploy app locally in development mode (requires local copy)",
 	RunE:  appUpDev,
 }
@@ -74,6 +76,8 @@ func appUpDev(c *cobra.Command, args []string) error {
 		return errors.New("Missing source path")
 	} else if len(args) == 0 {
 		return errors.New("Missing app name")
+	} else if len(args) == 1 {
+		return errors.New("Missing node")
 	}
 
 	app, err := config.FindLocalApp(sourcePath(), args[0])
@@ -86,6 +90,55 @@ func appUpDev(c *cobra.Command, args []string) error {
 	if err != nil {
 		panic(err)
 	}
+
+	op := &operations.StartOperation{
+		Backend: backend,
+		App:     app,
+	}
+
+	err = op.StartDev(args[1:])
+
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
+// ===  Run  ====================================================================
+//
+var appRunCmd = &cobra.Command{
+	Use:                "run app_name cmd",
+	Short:              "Execute command within app container",
+	DisableFlagParsing: true,
+	RunE:               appRun,
+}
+
+func appRun(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing app name")
+	}
+
+	fmt.Println(args[1:])
+
+	app, err := config.FindLocalApp(sourcePath(), args[0])
+	if err != nil {
+		return err
+	}
+
+	backend.SetupSync(app)
+	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	op := &operations.StartOperation{
+		Backend: backend,
+		App:     app,
+	}
+
+	op.RunDev(args[1:])
+
 	return nil
 }
 

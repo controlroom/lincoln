@@ -6,8 +6,8 @@ import (
 	"github.com/controlroom/lincoln/interfaces"
 	"github.com/controlroom/lincoln/metadata"
 
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 )
 
 type DockerStack struct {

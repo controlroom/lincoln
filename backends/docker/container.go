@@ -2,13 +2,17 @@ package docker
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/controlroom/lincoln/interfaces"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	"github.com/docker/engine-api/types/filters"
-	"github.com/docker/engine-api/types/network"
-	"github.com/docker/engine-api/types/strslice"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/strslice"
+
 	"github.com/docker/go-connections/nat"
 )
 
@@ -41,8 +45,9 @@ func Containers(containers []types.Container) []interfaces.Container {
 
 	for i, container := range containers {
 		toContainers[i] = interfaces.Container{
-			ID:   container.ID,
-			Name: container.Names[0],
+			ID:      container.ID,
+			Name:    container.Names[0],
+			Running: container.State == "running",
 		}
 	}
 
@@ -68,7 +73,7 @@ func (op DockerOperation) FindContainers(flags []map[string]string) []interfaces
 	}
 
 	options := types.ContainerListOptions{
-		All:    false,
+		All:    true,
 		Filter: args,
 	}
 
@@ -106,57 +111,172 @@ func (op DockerOperation) InspectContainer(container *interfaces.Container) inte
 	return interfaces.ContainerInfo{}
 }
 
-func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
-	var containerId string
+// ===  Running Container  ======================================================
+//
+//
 
-	getImage(opts.Image)
-
-	ports := make(map[nat.Port]struct{}, len(opts.Ports))
-	for _, port := range opts.Ports {
+func buildPorts(strPorts []string) map[nat.Port]struct{} {
+	ports := make(map[nat.Port]struct{}, len(strPorts))
+	for _, port := range strPorts {
 		var v struct{}
 		ports[nat.Port(port)] = v
 	}
+	return ports
+}
 
+func buildPortBindings(strPortBindings []string) nat.PortMap {
 	portBindings := make(nat.PortMap)
-	for _, port := range opts.PortBindings {
+	for _, port := range strPortBindings {
 		mapping, _ := nat.ParsePortSpec(port)
 		portBindings[mapping[0].Port] = []nat.PortBinding{mapping[0].Binding}
 	}
+	return portBindings
+}
 
-	containerConfig := &container.Config{
-		AttachStdin:  true,
-		AttachStdout: true,
-		AttachStderr: true,
-		Image:        opts.Image,
-		Env:          opts.Env,
-		OpenStdin:    true,
-		Cmd:          strslice.StrSlice(opts.Cmd),
-		ExposedPorts: ports,
-		Labels: map[string]string{
-			"RFStack": opts.Stack.Name,
-		},
-	}
-
-	hostConfig := &container.HostConfig{
-		CapAdd:       strslice.StrSlice(opts.CapAdd),
-		Binds:        opts.Volumes,
-		PortBindings: portBindings,
-	}
-
-	networkConfig := &network.NetworkingConfig{
+func buildNetworkConfig(opts interfaces.ContainerStartOptions) *network.NetworkingConfig {
+	return &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
 			opts.Stack.Name: &network.EndpointSettings{},
 		},
 	}
+}
 
-	res, err := client.ContainerCreate(ctx, containerConfig, hostConfig, networkConfig, opts.Name)
+func buildHostConfig(opts interfaces.ContainerStartOptions) *container.HostConfig {
+	return &container.HostConfig{
+		CapAdd:       strslice.StrSlice(opts.CapAdd),
+		Binds:        opts.Volumes,
+		VolumesFrom:  opts.VolumesFrom,
+		PortBindings: buildPortBindings(opts.PortBindings),
+	}
+}
+
+func buildContainerConfig(opts interfaces.ContainerStartOptions) *container.Config {
+	return &container.Config{
+		AttachStdin:  false,
+		AttachStdout: false,
+		AttachStderr: false,
+		Tty:          false,
+		Image:        opts.Image,
+		Env:          opts.Env,
+		OpenStdin:    false,
+		Cmd:          strslice.StrSlice(opts.Cmd),
+		ExposedPorts: buildPorts(opts.Ports),
+		Labels: map[string]string{
+			"RFStack": opts.Stack.Name,
+		},
+	}
+}
+
+func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
+	getImage(opts.Image)
+
+	hostConfig := buildHostConfig(opts)
+	hostConfig.AutoRemove = true
+
+	createRes, err := client.ContainerCreate(
+		ctx,
+		buildContainerConfig(opts),
+		hostConfig,
+		buildNetworkConfig(opts),
+		opts.Name,
+	)
+
 	if err != nil {
 		panic(err)
 	}
 
 	err = client.ContainerStart(
 		ctx,
-		res.ID,
+		createRes.ID,
+		types.ContainerStartOptions{},
+	)
+
+	if err != nil {
+		client.ContainerRemove(ctx, createRes.ID, types.ContainerRemoveOptions{
+			Force: true,
+		})
+
+		panic(err)
+	}
+
+	fmt.Printf("Booted container: %s\n", opts.Name)
+
+	return &interfaces.Container{
+		ID:      createRes.ID,
+		Name:    opts.Name,
+		Running: true,
+	}
+}
+
+func (op DockerOperation) RunContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
+	getImage(opts.Image)
+
+	containerConfig := buildContainerConfig(opts)
+
+	containerConfig.AttachStdin = true
+	containerConfig.AttachStdout = true
+	containerConfig.AttachStderr = true
+	containerConfig.OpenStdin = true
+	containerConfig.StdinOnce = true
+	containerConfig.Tty = true
+
+	createRes, err := client.ContainerCreate(
+		ctx,
+		containerConfig,
+		buildHostConfig(opts),
+		buildNetworkConfig(opts),
+		opts.Name,
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	options := types.ContainerAttachOptions{
+		Stream: true,
+		Stdin:  true,
+		Stdout: true,
+		Stderr: true,
+	}
+
+	attachRes, err := client.ContainerAttach(
+		ctx,
+		createRes.ID,
+		options,
+	)
+
+	defer attachRes.Close()
+
+	finished := make(chan struct{})
+
+	in := NewInStream(os.Stdin)
+
+	if err = in.SetRawTerminal(); err != nil {
+		panic(err)
+	}
+
+	out := NewOutStream(os.Stdout)
+	if err = out.SetRawTerminal(); err != nil {
+		panic(err)
+	}
+
+	go func() {
+		io.Copy(out, attachRes.Reader)
+		close(finished)
+	}()
+
+	go func() {
+		io.Copy(attachRes.Conn, in)
+		fmt.Println("finished stdin")
+	}()
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = client.ContainerStart(
+		ctx,
+		createRes.ID,
 		types.ContainerStartOptions{},
 	)
 
@@ -164,11 +284,10 @@ func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) 
 		panic(err)
 	}
 
-	fmt.Printf("Booted container: %s\n", opts.Name)
-	containerId = res.ID
+	<-finished
 
-	return &interfaces.Container{
-		ID:   containerId,
-		Name: opts.Name,
-	}
+	in.RestoreTerminal()
+	out.RestoreTerminal()
+
+	return nil
 }

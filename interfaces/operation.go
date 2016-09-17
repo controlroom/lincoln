@@ -11,8 +11,9 @@ type ContainerStartOptions struct {
 	Image        string
 	Name         string
 	Cmd          []string
-	Stack        Stack
+	Stack        *Stack
 	Volumes      []string
+	VolumesFrom  []string
 	Env          []string
 	CapAdd       []string
 	Ports        []string
@@ -25,8 +26,9 @@ type ContainerInfo struct {
 }
 
 type Container struct {
-	Name string
-	ID   string
+	Name    string
+	ID      string
+	Running bool
 }
 
 type Operation interface {
@@ -44,6 +46,7 @@ type Operation interface {
 
 	// ---  Containers  -----------------------------------------------------------
 	StartContainer(opts ContainerStartOptions) *Container
+	RunContainer(opts ContainerStartOptions) *Container
 	RemoveContainer(container *Container)
 	ListContainers() []Container
 	FindContainers(flags []map[string]string) []Container

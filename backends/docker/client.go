@@ -3,7 +3,7 @@ package docker
 import (
 	"context"
 
-	dockerClient "github.com/docker/engine-api/client"
+	dockerClient "github.com/docker/docker/client"
 )
 
 var ctx = context.Background()

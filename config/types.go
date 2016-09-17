@@ -12,7 +12,7 @@ type Node struct {
 	Name      string
 	Cmd       string
 	Exposed   bool
-	SubDomain string "yaml:sub-domain"
+	SubDomain string `yaml:"sub-domain"`
 	Balanced  bool
 	Replicas  int
 }
@@ -21,10 +21,12 @@ type Config struct {
 	Name          string
 	Description   string
 	Github        string
-	DefaultBranch string "yaml:default-branch"
+	DefaultBranch string `yaml:"default-branch"`
 	Host          string
+	DevImage      string `yaml:"dev-image"`
 
-	Nodes map[string]interface{}
+	Nodes    map[string]interface{}
+	NodeSets map[string][]string `yaml:"node-sets"`
 }
 
 type App struct {
@@ -70,8 +72,8 @@ func ParseConfigFromPath(path string) *Config {
 //
 // Which is the default with only one command. Both commands are essentially
 // equal.
-func (config *Config) GetNodes() []Node {
-	var nodes []Node
+func (config *Config) GetNodes() map[string]Node {
+	var nodes = make(map[string]Node)
 	for k, v := range config.Nodes {
 		var res Node
 		switch v.(type) {
@@ -87,7 +89,7 @@ func (config *Config) GetNodes() []Node {
 		}
 
 		res.Name = k
-		nodes = append(nodes, res)
+		nodes[k] = res
 	}
 
 	return nodes

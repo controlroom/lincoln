@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
-	"github.com/docker/engine-api/types"
 )
 
 func getImage(imageTag string) {

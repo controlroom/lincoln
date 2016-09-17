@@ -36,7 +36,7 @@ func (op DockerOperation) SetupSync(app *config.App) {
 		sync = op.StartContainer(interfaces.ContainerStartOptions{
 			Name:         devSyncName,
 			Image:        "sync:0.5.0",
-			Stack:        *op.GetDefaultStack(),
+			Stack:        op.GetDefaultStack(),
 			Env:          []string{"VOLUME=/src"},
 			Volumes:      []string{fmt.Sprintf("%v/.ssh/:/root/.ssh/", homeDir)},
 			PortBindings: []string{fmt.Sprintf("%v:873", port)},

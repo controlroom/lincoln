@@ -23,14 +23,15 @@ func TestGetNodes(t *testing.T) {
   test:
     cmd: here is a test command`,
 			expected: Node{
-				Name: "test",
-				Cmd:  "here is a test command",
+				Name:    "test",
+				Exposed: true,
+				Cmd:     "here is a test command",
 			},
 		},
 	}
 
 	for _, c := range cases {
-		node := ParseConfig([]byte(c.yaml)).GetNodes()[0]
+		node := ParseConfig([]byte(c.yaml)).GetNodes()["test"]
 		if !reflect.DeepEqual(node, c.expected) {
 			t.Errorf("Expected \n%+v\nto be equal to\n%+v", node, c.expected)
 		}
