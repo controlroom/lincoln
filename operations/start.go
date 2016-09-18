@@ -18,8 +18,18 @@ type StartOperation struct {
 	App     *config.App
 }
 
+func buildVolumes(s *StartOperation) []string {
+	s.Backend.CreateVolume(s.App.Config.Name)
+	sv := make([]string, len(s.App.Config.SharedPaths))
+	for i, path := range s.App.Config.SharedPaths {
+		sv[i] = fmt.Sprintf("%s:%s", s.App.Config.Name, path)
+	}
+	return sv
+}
+
 func (s *StartOperation) StartDev(ops []string) error {
 	config := s.App.Config
+	sharedVolumes := buildVolumes(s)
 	nodes := config.GetNodes()
 
 	for _, op := range ops {
@@ -30,6 +40,7 @@ func (s *StartOperation) StartDev(ops []string) error {
 			Image:       config.DevImage,
 			Cmd:         strings.Split(node.Cmd, " "),
 			Name:        fmt.Sprintf("%v-node-%v", config.Name, op),
+			Volumes:     sharedVolumes,
 			VolumesFrom: []string{fmt.Sprintf("%v-dev-sync", config.Name)},
 			Stack:       s.Backend.GetDefaultStack(),
 		})
@@ -42,6 +53,7 @@ func (s *StartOperation) RunDev(cmd []string) error {
 	s.Backend.RunContainer(interfaces.ContainerStartOptions{
 		Image:       s.App.Config.DevImage,
 		Cmd:         cmd,
+		Volumes:     buildVolumes(s),
 		VolumesFrom: []string{fmt.Sprintf("%v-dev-sync", s.App.Config.Name)},
 		Stack:       s.Backend.GetDefaultStack(),
 	})

@@ -23,7 +23,8 @@ type Config struct {
 	Github        string
 	DefaultBranch string `yaml:"default-branch"`
 	Host          string
-	DevImage      string `yaml:"dev-image"`
+	DevImage      string   `yaml:"dev-image"`
+	SharedPaths   []string `yaml:"shared-paths"`
 
 	Nodes    map[string]interface{}
 	NodeSets map[string][]string `yaml:"node-sets"`

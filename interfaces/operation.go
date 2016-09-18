@@ -57,4 +57,7 @@ type Operation interface {
 	// ---  Dev Mode  -------------------------------------------------------------
 	SetupSync(app *config.App)
 	Sync(app string, path string, quiet bool)
+
+	// ---  Volumes  --------------------------------------------------------------
+	CreateVolume(name string)
 }
