@@ -2,28 +2,14 @@ package docker
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"os/exec"
 
 	"github.com/controlroom/lincoln/config"
 	"github.com/controlroom/lincoln/interfaces"
 	"github.com/controlroom/lincoln/metadata"
+	"github.com/controlroom/lincoln/utils"
 )
-
-func freePort() int {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
-	if err != nil {
-		panic(err)
-	}
-
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		panic(err)
-	}
-	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port
-}
 
 // Startup containers required for syncing local application source code.
 func (op DockerOperation) SetupSync(app *config.App) {
@@ -31,7 +17,7 @@ func (op DockerOperation) SetupSync(app *config.App) {
 	sync := op.FindContainerByName(devSyncName)
 
 	if sync == nil {
-		port := freePort()
+		port := utils.FreePort()
 		homeDir := os.Getenv("HOME")
 		sync = op.StartContainer(interfaces.ContainerStartOptions{
 			Name:         devSyncName,
