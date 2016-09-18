@@ -167,6 +167,16 @@ func buildContainerConfig(opts interfaces.ContainerStartOptions) *container.Conf
 func (op DockerOperation) StartContainer(opts interfaces.ContainerStartOptions) *interfaces.Container {
 	getImage(opts.Image)
 
+	curr := op.FindContainerByName(opts.Name)
+
+	if curr != nil {
+		fmt.Println("Proc already running, shutting down")
+
+		client.ContainerRemove(ctx, curr.ID, types.ContainerRemoveOptions{
+			Force: true,
+		})
+	}
+
 	createRes, err := client.ContainerCreate(
 		ctx,
 		buildContainerConfig(opts),
@@ -282,6 +292,8 @@ func (op DockerOperation) RunContainer(opts interfaces.ContainerStartOptions) *i
 
 	in.RestoreTerminal()
 	out.RestoreTerminal()
+
+	client.ContainerRemove(ctx, createRes.ID, types.ContainerRemoveOptions{})
 
 	return nil
 }
