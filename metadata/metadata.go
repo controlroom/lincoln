@@ -10,11 +10,13 @@ import (
 )
 
 var metaBucket string = "lincoln-meta"
+var root string = fmt.Sprintf("%s/.lincoln", os.Getenv("HOME"))
 
 // Helper for extracting bolt.DB connector
 func getDB() *bolt.DB {
-	path := fmt.Sprintf("%s/.lincoln.db", os.Getenv("HOME"))
-	db, err := bolt.Open(path, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	os.Mkdir(root, 0777)
+	dbPath := fmt.Sprintf("%s/.lincoln.db", root)
+	db, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
