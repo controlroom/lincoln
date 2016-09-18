@@ -10,11 +10,14 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/controlroom/lincoln/backends/docker"
 	"github.com/controlroom/lincoln/interfaces"
+	"github.com/controlroom/lincoln/metadata"
+	"github.com/controlroom/lincoln/utils"
 	"github.com/fsnotify/fsevents"
 )
 
@@ -105,16 +108,20 @@ func listenForCleanup() {
 
 	go func() {
 		<-c
+		metadata.DeleteMeta("app:syncPort")
 		os.Exit(0)
 	}()
 }
 
-func StartServer(port int) {
+func StartServer() {
 	listenForCleanup()
 
 	res := make(chan ProjectSyncInfo, 1)
 	sync := NewSync(res)
 	rpc.Register(sync)
+
+	port := utils.FreePort()
+	metadata.PutMeta("app:syncPort", strconv.Itoa(port))
 
 	l, e := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	if e != nil {

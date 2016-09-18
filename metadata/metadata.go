@@ -41,6 +41,17 @@ func (n Namespace) Put(key string, value string) {
 	})
 }
 
+func (n Namespace) Delete(key string) {
+	db := getDB()
+	defer db.Close()
+
+	db.Update(func(tx *bolt.Tx) error {
+		b, _ := tx.CreateBucketIfNotExists(n)
+		b.Delete([]byte(key))
+		return nil
+	})
+}
+
 func (n Namespace) Get(key string) string {
 	db := getDB()
 	defer db.Close()
@@ -69,4 +80,8 @@ func PutMeta(key string, value string) {
 
 func GetMeta(key string) string {
 	return NS(metaBucket).Get(key)
+}
+
+func DeleteMeta(key string) {
+	NS(metaBucket).Delete(key)
 }

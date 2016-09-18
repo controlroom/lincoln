@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/controlroom/lincoln/config"
 	"github.com/controlroom/lincoln/metadata"
@@ -38,16 +37,6 @@ func init() {
 
 func sourcePath() string {
 	return metadata.GetMeta("app:currentSource")
-}
-
-func rpcClient() *sync.Client {
-	client, err := sync.NewClient("localhost:9876", time.Millisecond*500)
-
-	if err != nil {
-		panic(err)
-	}
-
-	return client
 }
 
 // ===  Status  ==================================================================
@@ -88,9 +77,14 @@ func appUpDev(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetupSync(app)
-	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+
+	client, err := sync.GetClient()
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	if err = client.Watch(backend, app.Config.Name, app.Path); err != nil {
+		return err
 	}
 
 	op := &operations.StartOperation{
@@ -101,7 +95,7 @@ func appUpDev(c *cobra.Command, args []string) error {
 	err = op.StartDev(args[1:])
 
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return nil
@@ -127,9 +121,13 @@ func appRun(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetupSync(app)
-	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+	client, err := sync.GetClient()
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	if err = client.Watch(backend, app.Config.Name, app.Path); err != nil {
+		return err
 	}
 
 	op := &operations.StartOperation{
@@ -164,9 +162,13 @@ func appCmd(c *cobra.Command, args []string) error {
 	}
 
 	backend.SetupSync(app)
-	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+	client, err := sync.GetClient()
 	if err != nil {
-		panic(err)
+		return err
+	}
+
+	if err = client.Watch(backend, app.Config.Name, app.Path); err != nil {
+		return err
 	}
 
 	op := &operations.StartOperation{
@@ -194,7 +196,7 @@ var appWatchCmd = &cobra.Command{
 }
 
 func appWatch(c *cobra.Command, args []string) error {
-	sync.StartServer(9876)
+	sync.StartServer()
 	return nil
 }
 
@@ -230,7 +232,13 @@ func appDown(c *cobra.Command, args []string) error {
 		return err
 	}
 
-	rpcClient().UnWatch(app.Config.Name)
+	client, err := sync.GetClient()
+	if err != nil {
+		return err
+	}
+
+	client.UnWatch(app.Config.Name)
+
 	return nil
 }
 
