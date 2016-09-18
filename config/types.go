@@ -26,9 +26,8 @@ type Config struct {
 	DevImage      string   `yaml:"dev-image"`
 	SharedPaths   []string `yaml:"shared-paths"`
 
-	Cmds     map[string]string
-	Nodes    map[string]interface{}
-	NodeSets map[string][]string `yaml:"node-sets"`
+	Cmds  map[string]string
+	Nodes map[string]interface{}
 }
 
 type App struct {

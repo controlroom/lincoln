@@ -8,29 +8,22 @@ github: twitter/twitter
 default-branch: develop
 host: twitter.dev
 
+cmds:
+  rspec: bundle exec rspec
+  cucumber: bundle exec cucumber
+
 nodes:
   web:
-    cmd: "bundle exec thin"
+    cmd: bundle exec thin
     exposed: true
     balanced: true
     replicas: 3
   worker:
-    cmd: "bundle exec worker"
+    cmd: bundle exec worker
     replicas: 5
   email:
-    cmd: "bundle exec email-worker"
+    cmd: bundle exec email-worker
     sub-domain: email
-  rspec: "bundle exec rspec"
-  cucumber: "bundle exec cucumber"
-
-node-sets:
-  testing:
-    - rspec
-    - cucumber
-  default:
-    - web
-    - worker
-    - email
 
 deps:
   resources:
