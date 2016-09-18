@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/controlroom/lincoln/config"
@@ -28,6 +29,7 @@ func init() {
 	appCmd.AddCommand(appWatchCmd)
 	appCmd.AddCommand(appDownCmd)
 	appCmd.AddCommand(appRunCmd)
+	appCmd.AddCommand(appCmdCmd)
 	attachGet(appCmd)
 	attachUpDev(appCmd)
 
@@ -119,8 +121,6 @@ func appRun(c *cobra.Command, args []string) error {
 		return errors.New("Missing app name")
 	}
 
-	fmt.Println(args[1:])
-
 	app, err := config.FindLocalApp(sourcePath(), args[0])
 	if err != nil {
 		return err
@@ -138,6 +138,49 @@ func appRun(c *cobra.Command, args []string) error {
 	}
 
 	op.RunDev(args[1:])
+
+	return nil
+}
+
+// ===  Cmd  ====================================================================
+//
+var appCmdCmd = &cobra.Command{
+	Use:                "cmd app_name cmd",
+	Short:              "Execute command within app container",
+	DisableFlagParsing: true,
+	RunE:               appCmd,
+}
+
+func appCmd(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing app name")
+	} else if len(args) == 1 {
+		return errors.New("Missing cmd")
+	}
+
+	app, err := config.FindLocalApp(sourcePath(), args[0])
+	if err != nil {
+		return err
+	}
+
+	backend.SetupSync(app)
+	_, err = rpcClient().Watch(backend, app.Config.Name, app.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	op := &operations.StartOperation{
+		Backend: backend,
+		App:     app,
+	}
+
+	cmd := app.Config.Cmds[args[1]]
+
+	if cmd == "" {
+		panic("Not a command")
+	}
+
+	op.RunDev(strings.Split(cmd, " "))
 
 	return nil
 }
