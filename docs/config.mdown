@@ -28,7 +28,7 @@ nodes:
 deps:
   resources:
     - postgres:9.3
-    - redis:latest
+    - redis:3.2
 
   apps:
     - name: streaming

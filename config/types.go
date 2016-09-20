@@ -17,6 +17,10 @@ type Node struct {
 	Replicas  int
 }
 
+type Deps struct {
+	Resources []string
+}
+
 type Config struct {
 	Name          string
 	Description   string
@@ -27,7 +31,10 @@ type Config struct {
 	SharedPaths   []string `yaml:"shared-paths"`
 
 	Cmds  map[string]string
+	Tests map[string]string
 	Nodes map[string]interface{}
+
+	Deps Deps
 }
 
 type App struct {

@@ -43,16 +43,25 @@ func createNetwork(name string, isStack bool) types.NetworkCreateResponse {
 	return network
 }
 
-func (op DockerOperation) CreateStack(name string) {
+func (op DockerOperation) CreateStack(name string) *interfaces.Stack {
 	op.EnsureBootstrapped()
 
-	if !hasNetwork(name) {
-		createNetwork(name, true)
+	network := op.FindStackByName(name)
+
+	if network == nil {
+		net := createNetwork(name, true)
+
+		network = &interfaces.Stack{
+			Name: name,
+			ID:   net.ID,
+		}
 
 		fmt.Printf("Created stack: %s\n", name)
 	} else {
 		fmt.Printf("Stack already created: %s\n", name)
 	}
+
+	return network
 }
 
 func (op DockerOperation) DestroyStack(name string) {
@@ -129,6 +138,12 @@ func (op DockerOperation) FindStack(flags []map[string]string) *interfaces.Stack
 	} else {
 		return &curr[0]
 	}
+}
+
+func (op DockerOperation) FindStackByName(name string) *interfaces.Stack {
+	return op.FindStack([]map[string]string{
+		map[string]string{"name": name},
+	})
 }
 
 func (op DockerOperation) GetDefaultStack() *interfaces.Stack {

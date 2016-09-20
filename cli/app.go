@@ -28,7 +28,8 @@ func init() {
 	appCmd.AddCommand(appWatchCmd)
 	appCmd.AddCommand(appDownCmd)
 	appCmd.AddCommand(appRunCmd)
-	appCmd.AddCommand(appCmdCmd)
+	attachCmd(appCmd)
+	attachTest(appCmd)
 	attachGet(appCmd)
 	attachUpDev(appCmd)
 
@@ -101,6 +102,41 @@ func appUpDev(c *cobra.Command, args []string) error {
 	return nil
 }
 
+// ===  Test  ===================================================================
+//
+var appTestCmd = &cobra.Command{
+	Use:                "test app_name test_name [args]",
+	Short:              "Run application tests",
+	DisableFlagParsing: true,
+	RunE:               appTest,
+}
+
+func attachTest(appCmd *cobra.Command) {
+	appCmd.AddCommand(appTestCmd)
+}
+
+func appTest(c *cobra.Command, args []string) error {
+	if len(args) == 0 {
+		return errors.New("Missing app name")
+	} else if len(args) == 1 {
+		return errors.New("Missing cmd")
+	}
+
+	app, err := config.FindLocalApp(sourcePath(), args[0])
+	if err != nil {
+		return err
+	}
+
+	op := &operations.StartOperation{
+		Backend: backend,
+		App:     app,
+	}
+
+	op.TestRun(args[1], args[2:])
+
+	return nil
+}
+
 // ===  Run  ====================================================================
 //
 var appRunCmd = &cobra.Command{
@@ -147,6 +183,10 @@ var appCmdCmd = &cobra.Command{
 	Short:              "Execute command within app container",
 	DisableFlagParsing: true,
 	RunE:               appCmd,
+}
+
+func attachCmd(appCmd *cobra.Command) {
+	appCmd.AddCommand(appCmdCmd)
 }
 
 func appCmd(c *cobra.Command, args []string) error {

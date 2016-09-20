@@ -18,6 +18,7 @@ type ContainerStartOptions struct {
 	CapAdd       []string
 	Ports        []string
 	PortBindings []string
+	NetAliases   []string
 }
 
 type ContainerInfo struct {
@@ -36,13 +37,14 @@ type Operation interface {
 	EnsureBootstrapped()
 
 	// ---  Stacks  --------------------------------------------------------------
-	CreateStack(name string)
+	CreateStack(name string) *Stack
 	DestroyStack(name string)
 	ListStacks() []Stack
 	GetDefaultStack() *Stack
 	SetDefaultStack(name string) error
 	FindStacks(flags []map[string]string) []Stack
 	FindStack(flags []map[string]string) *Stack
+	FindStackByName(name string) *Stack
 
 	// ---  Containers  -----------------------------------------------------------
 	StartContainer(opts ContainerStartOptions) *Container

@@ -136,7 +136,9 @@ func buildPortBindings(strPortBindings []string) nat.PortMap {
 func buildNetworkConfig(opts interfaces.ContainerStartOptions) *network.NetworkingConfig {
 	return &network.NetworkingConfig{
 		EndpointsConfig: map[string]*network.EndpointSettings{
-			opts.Stack.Name: &network.EndpointSettings{},
+			opts.Stack.Name: &network.EndpointSettings{
+				Aliases: opts.NetAliases,
+			},
 		},
 	}
 }
@@ -274,6 +276,13 @@ func (op DockerOperation) RunContainer(opts interfaces.ContainerStartOptions) *i
 		fmt.Println("finished stdin")
 	}()
 
+	defer func() {
+		in.RestoreTerminal()
+		out.RestoreTerminal()
+
+		client.ContainerRemove(ctx, createRes.ID, types.ContainerRemoveOptions{})
+	}()
+
 	if err != nil {
 		panic(err)
 	}
@@ -289,11 +298,6 @@ func (op DockerOperation) RunContainer(opts interfaces.ContainerStartOptions) *i
 	}
 
 	<-finished
-
-	in.RestoreTerminal()
-	out.RestoreTerminal()
-
-	client.ContainerRemove(ctx, createRes.ID, types.ContainerRemoveOptions{})
 
 	return nil
 }

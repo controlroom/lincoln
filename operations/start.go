@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 type Startable interface {
 	StartDev(ops []string) error
 	RunDev(cmd []string) error
+	TestRun(cmd string, args []string) error
 }
 
 type StartOperation struct {
@@ -56,6 +58,45 @@ func (s *StartOperation) RunDev(cmd []string) error {
 		Volumes:     buildVolumes(s),
 		VolumesFrom: []string{fmt.Sprintf("%v-dev-sync", s.App.Config.Name)},
 		Stack:       s.Backend.GetDefaultStack(),
+	})
+
+	return nil
+}
+
+func (s *StartOperation) TestRun(cmd string, args []string) error {
+	testCmd := s.App.Config.Tests[cmd]
+
+	if testCmd == "" {
+		return errors.New("Not a test command")
+	}
+
+	config := s.App.Config
+
+	stack := s.Backend.CreateStack(fmt.Sprintf("test-%v-%v", config.Name, cmd))
+	defer s.Backend.DestroyStack(stack.Name)
+
+	for _, dep := range config.Deps.Resources {
+		nameVer := strings.Split(dep, ":")
+		s.Backend.StartContainer(interfaces.ContainerStartOptions{
+			Image:      dep,
+			Name:       fmt.Sprintf("%v-test-dep-%v", config.Name, nameVer[0]),
+			Stack:      stack,
+			NetAliases: []string{nameVer[0]},
+		})
+	}
+
+	s.Backend.RunContainer(interfaces.ContainerStartOptions{
+		Image: s.App.Config.DevImage,
+		// Cmd:   strings.Split(testCmd, " "),
+		Cmd: []string{"bash"},
+		Env: []string{
+			"POSTGRES_SERVICE_HOST=postgres",
+			"POSTGRES_USERNAME=postgres",
+			"REDIS_HOST=redis",
+		},
+		Volumes:     buildVolumes(s),
+		VolumesFrom: []string{fmt.Sprintf("%v-dev-sync", s.App.Config.Name)},
+		Stack:       stack,
 	})
 
 	return nil
